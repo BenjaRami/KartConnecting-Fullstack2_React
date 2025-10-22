@@ -7,7 +7,7 @@ const Inicio = () => {
       <h1 className="main-title">Bienvenido a KartConnect</h1>
       <p className="lead text-white">
         Tu comunidad para organizar <strong>torneos</strong>, registrar <strong>equipos</strong> 
-        y descubrir a los <strong>mejores jugadores</strong> de Mario Kart.
+         y descubrir a los <strong>mejores jugadores</strong> de Mario Kart.
       </p>
 
       <div className="row mt-4">
