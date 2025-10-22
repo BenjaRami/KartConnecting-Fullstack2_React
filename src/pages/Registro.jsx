@@ -175,6 +175,21 @@ const Registro = () => {
               </div>
             </div>
 
+            <!-- Contraseña -->
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="password" placeholder="********" required>
+          </div>
+
+          <!-- Confirmar contraseña -->
+          <div class="mb-3">
+            <label for="confirmar_password" class="form-label">Confirmar contraseña</label>
+            <input type="password" class="form-control" id="confirmar_password" placeholder="********" required>
+          </div>
+
+          <!-- Mensaje -->
+          <div id="mensaje" class="message"></div>
+
             <div className="d-grid gap-2">
               <button type="submit" className="btn btn-success">Registrarse</button>
               <Link to="/" className="btn btn-outline-secondary">Volver al inicio</Link>
