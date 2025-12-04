@@ -1,23 +1,31 @@
-import React from 'react';
-import { equipos } from '../data/data';
+import React, { useEffect, useState } from "react";
+import { api } from "../api/backend";
 
-const Equipos = () => {
-  return (
-    <div className="container">
-      <h1>🏁 Equipos registrados</h1>
-      <div className="row">
-        {equipos.map(equipo => (
-          <div key={equipo.id} className="col-md-6 mb-4">
-            <div className="item-card">
-              <h3>{equipo.nombre}</h3>
-              <p><strong>País:</strong> {equipo.pais}</p>
-              <p>{equipo.descripcion}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+function Equipos() {
+    const [equipos, setEquipos] = useState([]);
+    const token = localStorage.getItem("token");
+
+    useEffect(() => {
+        api.get("/api/equipos", token)
+            .then(data => setEquipos(data))
+            .catch(err => console.log("Error:", err));
+    }, []);
+
+    return (
+        <div className="container">
+            <h1>Equipos</h1>
+
+            {equipos.length === 0 && <p>No hay equipos registrados.</p>}
+
+            <ul>
+                {equipos.map(eq => (
+                    <li key={eq.id}>
+                        {eq.nombre} - Región: {eq.region}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
 
 export default Equipos;

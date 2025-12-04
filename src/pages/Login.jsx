@@ -1,105 +1,114 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { backend } from "../backend";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    correo: '',
-    password: ''
+    correo: "",
+    password: ""
   });
 
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value
-    });
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validaciones
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.correo)) {
-      setMessage('⚠ Por favor ingresa un correo electrónico válido.');
-      return;
+    setMessage("");
+    setLoading(true);
+
+    try {
+      const res = await backend.post("/api/auth/login", {
+        correo: formData.correo,
+        password: formData.password
+      });
+
+      if (res && res.token) {
+        // guardar token para las rutas protegidas
+        localStorage.setItem("token", res.token);
+        setMessage("Inicio de sesión exitoso.");
+
+        // pequeña pausa y redirigir
+        setTimeout(() => {
+          navigate("/jugadores");
+        }, 800);
+      } else {
+        setMessage("No se recibió un token válido desde el servidor.");
+      }
+    } catch (err) {
+      setMessage(err.message || "No se pudo iniciar sesión.");
+    } finally {
+      setLoading(false);
     }
-
-    if (formData.password.length < 6) {
-      setMessage('⚠ La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-
-    // Simular login exitoso
-    setMessage('✅ ¡Inicio de sesión exitoso! Redirigiendo...');
-    
-    // Limpiar formulario
-    setFormData({
-      correo: '',
-      password: ''
-    });
-
-    // Redirigir después de 2 segundos
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 2000);
   };
 
   return (
-    <div className="container">
-      <h1 className="text-center mt-4">🔑 Iniciar sesión</h1>
-      <p className="text-center">Accede a tu cuenta KartConnect</p>
-
+    <div className="container mt-4">
       <div className="row justify-content-center">
-        <div className="col-md-5">
-          <form className="login-form p-4 rounded shadow" onSubmit={handleSubmit}>
+        <div className="col-md-6">
+          <h1 className="mb-4 text-center">Ingreso a Kartconnecting</h1>
+
+          <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label htmlFor="correo" className="form-label">Correo electrónico</label>
-              <input 
-                type="email" 
-                className="form-control" 
+              <label htmlFor="correo" className="form-label">
+                Correo
+              </label>
+              <input
+                type="email"
+                className="form-control"
                 id="correo"
                 name="correo"
                 value={formData.correo}
                 onChange={handleChange}
-                placeholder="ejemplo@mail.com" 
-                required 
+                placeholder="ejemplo@mail.com"
+                required
               />
             </div>
 
             <div className="mb-3">
-              <label htmlFor="password" className="form-label">Contraseña</label>
-              <input 
-                type="password" 
-                className="form-control" 
+              <label htmlFor="password" className="form-label">
+                Contraseña
+              </label>
+              <input
+                type="password"
+                className="form-control"
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="********" 
-                required 
+                placeholder="Ingresa tu contraseña"
+                required
               />
             </div>
 
-            <div className="mb-3 form-check">
-              <input 
-                type="checkbox" 
-                className="form-check-input" 
-                id="recordarme"
-                name="recordarme"
-              />
-              <label className="form-check-label" htmlFor="recordarme">Recordarme</label>
-            </div>
-
-            <div className="d-grid gap-2">
-              <button type="submit" className="btn btn-success">Ingresar</button>
-              <Link to="/registro" className="btn btn-outline-secondary">Crear cuenta</Link>
-            </div>
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              disabled={loading}
+            >
+              {loading ? "Ingresando..." : "Ingresar"}
+            </button>
           </form>
-          
+
+          <div className="mt-3 text-center">
+            <span>¿No tienes cuenta? </span>
+            <Link to="/registro">Regístrate aquí</Link>
+          </div>
+
           {message && (
-            <div className={`alert ${message.includes('✅') ? 'alert-success' : 'alert-danger'} mt-3`}>
+            <div
+              className={`alert mt-3 ${
+                message.includes("exitoso") ? "alert-success" : "alert-danger"
+              }`}
+            >
               {message}
             </div>
           )}
@@ -110,3 +119,4 @@ const Login = () => {
 };
 
 export default Login;
+

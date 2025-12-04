@@ -1,40 +1,34 @@
-import React from 'react';
-import { torneos, carreras } from '../data/data';
+import React, { useEffect, useState } from "react";
+import { api } from "../api/backend";
 
-const Torneos = () => {
-  const getCarrerasPorTorneo = (torneoId) => {
-    return carreras.filter(carrera => carrera.id_torneo === torneoId);
-  };
+function Torneos() {
+    const [torneos, setTorneos] = useState([]);
+    const token = localStorage.getItem("token");
 
-  return (
-    <div className="container">
-      <h1>🏆 Torneos activos</h1>
-      <div className="row">
-        {torneos.map(torneo => {
-          const carrerasTorneo = getCarrerasPorTorneo(torneo.id);
-          return (
-            <div key={torneo.id} className="col-md-6 mb-4">
-              <div className="item-card">
-                <h3>{torneo.nombre}</h3>
-                <p><strong>Modalidad:</strong> {torneo.modalidad}</p>
-                <p><strong>Fechas:</strong> {torneo.inicio} → {torneo.fin}</p>
-                {carrerasTorneo.length > 0 && (
-                  <div>
-                    <h5>Carreras:</h5>
-                    <ul style={{ textAlign: 'left' }}>
-                      {carrerasTorneo.map(carrera => (
-                        <li key={carrera.id}>• {carrera.pista} — {carrera.fecha}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
+    useEffect(() => {
+        api.get("/api/torneos", token)
+            .then(data => setTorneos(data))
+            .catch(err => console.log("Error:", err));
+    }, []);
+
+    return (
+        <div className="container">
+            <h1>Torneos disponibles</h1>
+
+            {torneos.length === 0 && <p>No hay torneos disponibles.</p>}
+
+            <ul>
+                {torneos.map(t => (
+                    <li key={t.id}>
+                        {t.nombre}  
+                        - Inicio: {t.fecha_inicio}  
+                        - Fin: {t.fecha_fin}  
+                        - Premio: {t.premio}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
 
 export default Torneos;
