@@ -13,9 +13,11 @@ import Quienes from './pages/Quienes.jsx';
 
 import './index.css';
 
+import { Navigate } from 'react-router-dom';
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
-  if (!token) return <div>No autorizado. Inicia sesión.</div>;
+  if (!token) return <Navigate to="/login" replace />;
   return children;
 };
 

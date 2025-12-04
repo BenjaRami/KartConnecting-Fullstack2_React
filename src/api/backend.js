@@ -1,3 +1,27 @@
+// Compatibility API wrapper used by pages that import { api } from '../api/backend'
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081/api';
+
+async function request(method, path, token, body) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const opts = { method, headers };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+
+  const res = await fetch(`${API_BASE}${path}`, opts);
+  if (res.status === 204) return null;
+  const text = await res.text();
+  try { return JSON.parse(text); } catch { return text; }
+}
+
+export const api = {
+  get: (path, token) => request('GET', path, token),
+  post: (path, body, token) => request('POST', path, token, body),
+  put: (path, body, token) => request('PUT', path, token, body),
+  delete: (path, token) => request('DELETE', path, token),
+};
+
+export default api;
 // backend.js
 // Cliente HTTP universal para consumir tu backend desde React
 
