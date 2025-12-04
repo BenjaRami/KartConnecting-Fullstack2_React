@@ -1,5 +1,6 @@
 // Minimal API client using fetch. No external deps.
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+// Default backend URL: backend runs on 8081 to avoid conflict with frontend dev server on 8080
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081/api';
 
 function getToken() {
   return localStorage.getItem('jwt') || null;
