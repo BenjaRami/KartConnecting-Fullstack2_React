@@ -3,7 +3,7 @@ import { login } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login({ onLoginSuccess }) {
-  const [correo, setCorreo] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
@@ -13,17 +13,15 @@ export default function Login({ onLoginSuccess }) {
     e.preventDefault();
     setError(null);
 
-    const token = await login(correo, password);
+    const token = await login(email, password);
 
     if (!token) {
       setError("Credenciales incorrectas");
       return;
     }
 
-    // callback opcional
     if (onLoginSuccess) onLoginSuccess(token);
 
-    // redirige al inicio
     navigate('/');
   };
 
@@ -35,8 +33,8 @@ export default function Login({ onLoginSuccess }) {
         <input
           type="email"
           placeholder="Correo"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
 
@@ -55,5 +53,3 @@ export default function Login({ onLoginSuccess }) {
     </div>
   );
 }
-
-

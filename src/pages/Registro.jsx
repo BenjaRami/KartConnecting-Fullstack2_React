@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function Registro() {
   const [form, setForm] = useState({
     nombre: "",
-    correo: "",
+    email: "",
     password: "",
     pais: "",
     nivel: "Amateur"
@@ -28,58 +28,41 @@ export default function Registro() {
     setError("");
 
     try {
-      // 1) Crear usuario (solo correo/password)
+      // 1. Crear usuario
       const reg = await crearUsuario({
-        correo: form.correo,
-        password: form.password
+        email: form.email,
+        password: form.password,
+        name: form.nombre
       });
 
       if (!reg || reg.error) {
         setError("No se pudo crear el usuario.");
         return;
       }
-      try {
-  const resp = await fetch("http://localhost:8080/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      correo: form.correo,
-      password: form.password
-    })
-  });
 
-  const data = await resp.json();
-  console.log("RESPUESTA LOGIN AUTOMÁTICO:", data);
-
-  if (data?.token) {
-    localStorage.setItem("jwt", data.token);
-  } else {
-    setError("Login automático falló. Respuesta inesperada.");
-    return;
-  }
-} catch (e) {
-  console.log("ERROR LOGIN AUTOMÁTICO:", e);
-  setError("Error al iniciar sesión automáticamente.");
-  return;
-}
-
-      // 2) Login automático
-      const token = await login(form.correo, form.password);
+      // 2. Login automático
+      const token = await login(form.email, form.password);
 
       if (!token) {
         setError("Error al iniciar sesión automáticamente.");
         return;
       }
 
-      // 3) Crear jugador (requiere token)
-      const jugadorRes = await crearJugador({
-        nombre_gamer: form.nombre,
-        correo: form.correo,
-        pais: form.pais,
-        nivel: form.nivel,
-        bio: "Nuevo jugador",
-        disponible_para_equipos: "S"
-      });
+      const mapNivel = {
+      "Amateur": "AMATEUR",
+      "Semi-Pro": "SEMI_PRO",
+      "Pro": "PRO"
+    };
+
+    const jugadorRes = await crearJugador({
+      nombreGamer: form.nombre,
+      correo: form.email,
+      pais: form.pais,
+      nivel: mapNivel[form.nivel],
+      bio: "Nuevo jugador"
+    });
+
+
 
       if (!jugadorRes) {
         setError("No se pudo crear el jugador.");
@@ -117,9 +100,9 @@ export default function Registro() {
         <label className="mt-3">Correo</label>
         <input
           type="email"
-          name="correo"
+          name="email"
           required
-          value={form.correo}
+          value={form.email}
           onChange={handleChange}
           className="form-control"
         />
@@ -163,4 +146,3 @@ export default function Registro() {
     </div>
   );
 }
-
