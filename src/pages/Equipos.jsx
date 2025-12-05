@@ -1,31 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api/backend";
+import { getEquipos } from "../api/api";
 
-function Equipos() {
-    const [equipos, setEquipos] = useState([]);
-    const token = localStorage.getItem("token");
+export default function Equipos() {
 
-    useEffect(() => {
-        api.get("/api/equipos", token)
-            .then(data => setEquipos(data))
-            .catch(err => console.log("Error:", err));
-    }, []);
+  const [equipos, setEquipos] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
 
-    return (
-        <div className="container">
-            <h1>Equipos</h1>
+  useEffect(() => {
+    async function cargar() {
+      try {
+        const data = await getEquipos();
+        setEquipos(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.log(err);
+        setError("Error al cargar equipos.");
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargar();
+  }, []);
 
-            {equipos.length === 0 && <p>No hay equipos registrados.</p>}
+  return (
+    <div className="container">
+      <h1 className="main-title">Equipos registrados</h1>
 
-            <ul>
-                {equipos.map(eq => (
-                    <li key={eq.id}>
-                        {eq.nombre} - Región: {eq.region}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+      {cargando && <p className="message">Cargando...</p>}
+      {error && <p className="message error">{error}</p>}
+
+      {(!cargando && equipos.length === 0) && (
+        <p className="message">No hay equipos registrados.</p>
+      )}
+
+      <div>
+        {equipos.map(eq => (
+          <div key={eq.id_equipo} className="item-card">
+            <h3>{eq.nombre}</h3>
+            <p>Región: {eq.region || "Sin especificar"}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
-
-export default Equipos;

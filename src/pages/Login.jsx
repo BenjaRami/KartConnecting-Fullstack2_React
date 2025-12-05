@@ -1,122 +1,59 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { backend } from "../backend";
+import React, { useState } from 'react';
+import { login } from '../api/api';
+import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
-  const [formData, setFormData] = useState({
-    correo: "",
-    password: ""
-  });
-
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function Login({ onLoginSuccess }) {
+  const [correo, setCorreo] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
-    setLoading(true);
+    setError(null);
 
-    try {
-      const res = await backend.post("/api/auth/login", {
-        correo: formData.correo,
-        password: formData.password
-      });
+    const token = await login(correo, password);
 
-      if (res && res.token) {
-        // guardar token para las rutas protegidas
-        localStorage.setItem("token", res.token);
-        setMessage("Inicio de sesión exitoso.");
-
-        // pequeña pausa y redirigir
-        setTimeout(() => {
-          navigate("/jugadores");
-        }, 800);
-      } else {
-        setMessage("No se recibió un token válido desde el servidor.");
-      }
-    } catch (err) {
-      setMessage(err.message || "No se pudo iniciar sesión.");
-    } finally {
-      setLoading(false);
+    if (!token) {
+      setError("Credenciales incorrectas");
+      return;
     }
+
+    // callback opcional
+    if (onLoginSuccess) onLoginSuccess(token);
+
+    // redirige al inicio
+    navigate('/');
   };
 
   return (
-    <div className="container mt-4">
-      <div className="row justify-content-center">
-        <div className="col-md-6">
-          <h1 className="mb-4 text-center">Ingreso a Kartconnecting</h1>
+    <div className="login-container">
+      <h2>Iniciar Sesión</h2>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="correo" className="form-label">
-                Correo
-              </label>
-              <input
-                type="email"
-                className="form-control"
-                id="correo"
-                name="correo"
-                value={formData.correo}
-                onChange={handleChange}
-                placeholder="ejemplo@mail.com"
-                required
-              />
-            </div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="Correo"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+          required
+        />
 
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Contraseña
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Ingresa tu contraseña"
-                required
-              />
-            </div>
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-            <button
-              type="submit"
-              className="btn btn-primary w-100"
-              disabled={loading}
-            >
-              {loading ? "Ingresando..." : "Ingresar"}
-            </button>
-          </form>
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
-          <div className="mt-3 text-center">
-            <span>¿No tienes cuenta? </span>
-            <Link to="/registro">Regístrate aquí</Link>
-          </div>
-
-          {message && (
-            <div
-              className={`alert mt-3 ${
-                message.includes("exitoso") ? "alert-success" : "alert-danger"
-              }`}
-            >
-              {message}
-            </div>
-          )}
-        </div>
-      </div>
+        <button type="submit">Ingresar</button>
+      </form>
     </div>
   );
-};
+}
 
-export default Login;
 

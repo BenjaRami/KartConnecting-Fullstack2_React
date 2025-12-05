@@ -1,6 +1,6 @@
 // Minimal API client using fetch. No external deps.
-// Default backend URL: backend runs on 8081 to avoid conflict with frontend dev server on 8080
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081/api';
+
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
 function getToken() {
   return localStorage.getItem('jwt') || null;
@@ -16,6 +16,7 @@ function setToken(token) {
 
 async function request(method, path, body, auth = true) {
   const headers = { 'Content-Type': 'application/json' };
+
   if (auth) {
     const t = getToken();
     if (t) headers['Authorization'] = `Bearer ${t}`;
@@ -25,24 +26,39 @@ async function request(method, path, body, auth = true) {
   if (body !== undefined) opts.body = JSON.stringify(body);
 
   const res = await fetch(`${API_BASE}${path}`, opts);
+
   if (res.status === 204) return null;
+
   const text = await res.text();
   try { return JSON.parse(text); } catch { return text; }
 }
 
-// Auth
-export async function login(email, password) {
-  const token = await request('POST', '/auth/login', { email, password }, false);
-  if (typeof token === 'string') {
-    setToken(token);
-    return token;
+// ----------------------
+// AUTH
+// ----------------------
+export async function login(correo, password) {
+  const data = await request('POST', '/auth/login', { correo, password }, false);
+
+  // Backend devuelve: { token: "xxxxx" }
+  if (data?.token) {
+    setToken(data.token);
+    return data.token;
   }
+
   return null;
 }
 
-export function logout() { setToken(null); }
+export function logout() {
+  setToken(null);
+}
 
-export function getCurrentToken() { return getToken(); }
+export function getCurrentToken() {
+  return getToken();
+}
+
+// ----------------------
+// CRUDs (con /api/...)
+// ----------------------
 
 // Jugadores
 export const getJugadores = () => request('GET', '/jugadores');
@@ -79,7 +95,7 @@ export const crearBusqueda = (b) => request('POST', '/busquedas', b);
 export const actualizarBusqueda = (id, b) => request('PUT', `/busquedas/${id}`, b);
 export const eliminarBusqueda = (id) => request('DELETE', `/busquedas/${id}`);
 
-// Miembros de equipo
+// Miembro equipo
 export const getMiembrosEquipo = () => request('GET', '/miembros-equipo');
 export const getMiembroEquipo = (id) => request('GET', `/miembros-equipo/${id}`);
 export const crearMiembroEquipo = (m) => request('POST', '/miembros-equipo', m);
@@ -93,16 +109,7 @@ export const crearCarrera = (c) => request('POST', '/carreras', c);
 export const actualizarCarrera = (id, c) => request('PUT', `/carreras/${id}`, c);
 export const eliminarCarrera = (id) => request('DELETE', `/carreras/${id}`);
 
-// Export base for advanced usage
+export const crearUsuario = (u) => request('POST', '/auth/registro', u, false);
+
 export const apiBase = API_BASE;
 
-export default {
-  login, logout, getCurrentToken,
-  getJugadores, getJugador, crearJugador, actualizarJugador, eliminarJugador,
-  getEquipos, getEquipo, crearEquipo, actualizarEquipo, eliminarEquipo,
-  getTorneos, getTorneo, crearTorneo, actualizarTorneo, eliminarTorneo,
-  getPistas, getPista, crearPista, actualizarPista, eliminarPista,
-  getBusquedas, getBusqueda, crearBusqueda, actualizarBusqueda, eliminarBusqueda,
-  getMiembrosEquipo, getMiembroEquipo, crearMiembroEquipo, actualizarMiembroEquipo, eliminarMiembroEquipo,
-  getCarreras, getCarrera, crearCarrera, actualizarCarrera, eliminarCarrera,
-};

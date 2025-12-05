@@ -1,32 +1,57 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api/backend";
+import { getJugadores } from "../api/api";
 
-function Jugadores() {
-    const [jugadores, setJugadores] = useState([]);
-    const token = localStorage.getItem("token");
+export default function Jugadores() {
 
-    useEffect(() => {
-        api.get("/api/jugadores", token)
-            .then(data => setJugadores(data))
-            .catch(err => console.log("Error cargando jugadores:", err));
-    }, []);
+  const [jugadores, setJugadores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    return (
-        <div className="container">
-            <h1>Jugadores registrados</h1>
+  async function cargarJugadores() {
+    try {
+      const data = await getJugadores();
+      setJugadores(data || []);
+    } catch (e) {
+      console.error(e);
+      setError("Error al cargar jugadores.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-            {jugadores.length === 0 && <p>No hay jugadores registrados.</p>}
+  useEffect(() => {
+    cargarJugadores();
+  }, []);
 
-            <ul>
-                {jugadores.map(j => (
-                    <li key={j.id}>
-                        {j.nombre_gamer} - Nivel: {j.nivel} - País: {j.pais}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+  if (loading) return <p>Cargando jugadores...</p>;
+  if (error) return <p className="message error">{error}</p>;
+
+  return (
+    <div className="container">
+      <h1 className="main-title">Jugadores</h1>
+
+      {jugadores.length === 0 && (
+        <p className="message">No hay jugadores registrados.</p>
+      )}
+
+      <div className="lista-tarjetas">
+        {jugadores.map((j) => (
+          <div key={j.id_jugador} className="item-card">
+            <h3>{j.nombre_gamer}</h3>
+
+            <p><strong>Correo:</strong> {j.correo}</p>
+            <p><strong>País:</strong> {j.pais}</p>
+            <p><strong>Nivel competitivo:</strong> {j.nivel}</p>
+
+          </div>
+        ))}
+      </div>
+
+      <button className="submit-btn mt-3" onClick={cargarJugadores}>
+        Recargar lista
+      </button>
+    </div>
+  );
 }
 
-export default Jugadores;
 
